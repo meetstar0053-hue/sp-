@@ -12,26 +12,41 @@ body {
     background: #f4f6f8;
     padding: 20px;
 }
+
 button {
     font-size: 16px;
     padding: 10px 15px;
     margin: 5px;
 }
+
 input {
     font-size: 18px;
     padding: 10px;
     width: 80%;
     margin: 5px;
 }
+
 .result {
     font-size: 18px;
     margin-top: 10px;
 }
-.msg {
-    color: #444;
-    font-size: 16px;
-    margin-top: 10px;
+
+.revision-box {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #dff9fb, #c7ecee);
+    border: 2px solid #22a6b3;
+    font-size: 20px;
+    font-weight: bold;
+    color: #130f40;
 }
+
+.revision-box span {
+    letter-spacing: 6px;
+    color: #30336b;
+}
+
 hr {
     margin: 20px 0;
 }
@@ -43,7 +58,6 @@ hr {
 <h2>🔊 Spelling Practice</h2>
 
 <button onclick="speakWord()">🔈 Speak Word</button>
-<button onclick="showSpelling()">🔤 Spelling</button>
 <button onclick="randomWord()">🎲 Random Word</button>
 
 <br><br>
@@ -56,7 +70,7 @@ hr {
 <button onclick="nextWord()">Next Word</button>
 
 <div class="result" id="result"></div>
-<div class="msg" id="message"></div>
+<div id="revision"></div>
 
 <hr>
 
@@ -66,16 +80,15 @@ hr {
 <button onclick="addWord()">Add Spelling</button>
 
 <script>
-let words = [
- "Strawberry","Harbor","Purple","Computer","Language"
-];
+let words = ["Strawberry","Harbor","Purple","Computer","Language"];
 
 let currentWord = "";
 let wrongWords = [];
 let count = 0;
 let index = 0;
+let isRevision = false;
 
-// ---------- SPEECH (ONLY FULL WORD) ----------
+// ---------- SPEECH ----------
 function speak(text) {
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.9;
@@ -86,32 +99,30 @@ function speakWord() {
     if (currentWord) speak(currentWord);
 }
 
-// ---------- SHOW SPELLING (NO AUDIO) ----------
-function showSpelling() {
-    if (!currentWord) return;
-    document.getElementById("message").innerHTML =
-        "Spelling: <b>" + currentWord.split("").join(" - ") + "</b>";
-}
-
 // ---------- RANDOM WORD ----------
 function randomWord() {
     resetUI();
+    isRevision = false;
     currentWord = words[Math.floor(Math.random() * words.length)];
     speak(currentWord);
 }
 
-// ---------- NEXT WORD (REVISION WITHOUT SPEAK) ----------
+// ---------- NEXT WORD ----------
 function nextWord() {
     resetUI();
     count++;
 
+    // 🔁 REVISION WORD (NORMAL BEHAVIOR + BOX)
     if (count % 3 === 0 && wrongWords.length > 0) {
         currentWord = wrongWords.shift();
-        document.getElementById("message").innerHTML =
-            "🔁 Revision word: <b>" + currentWord + "</b>";
+        isRevision = true;
+        showRevision(currentWord);
+        speak(currentWord);   // 🔈 behaves like normal
         return;
     }
 
+    // NORMAL WORD
+    isRevision = false;
     currentWord = words[index % words.length];
     index++;
     speak(currentWord);
@@ -134,6 +145,16 @@ function checkSpelling() {
     }
 }
 
+// ---------- SHOW REVISION BOX ----------
+function showRevision(word) {
+    document.getElementById("revision").innerHTML = `
+        <div class="revision-box">
+            🔁 REVISION WORD<br><br>
+            <span>${word.split("").join(" ")}</span>
+        </div>
+    `;
+}
+
 // ---------- ADD NEW WORD ----------
 function addWord() {
     const nw = document.getElementById("newWord").value.trim();
@@ -144,11 +165,11 @@ function addWord() {
     alert("Added: " + nw);
 }
 
-// ---------- UTILS ----------
+// ---------- RESET ----------
 function resetUI() {
     document.getElementById("answer").value = "";
     document.getElementById("result").innerHTML = "";
-    document.getElementById("message").innerHTML = "";
+    document.getElementById("revision").innerHTML = "";
 }
 
 // Start app
