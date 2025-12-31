@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spelling Practice</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f4f6f8;
+    padding: 20px;
+}
+input {
+    font-size: 18px;
+    padding: 10px;
+    width: 80%;
+}
+button {
+    font-size: 18px;
+    padding: 10px 20px;
+    margin: 5px;
+}
+.result {
+    font-size: 18px;
+    margin-top: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🔊 Spelling Practice</h1>
+
+<button onclick="speakWord()">🔈 Speak Word</button><br><br>
+
+<input id="answer" placeholder="Type spelling">
+
+<br><br>
+
+<button onclick="checkSpelling()">Check</button>
+<button onclick="nextWord()">Next Word</button>
+
+<div class="result" id="result"></div>
+
+<script>
+const words = ["Strawberry","Harbor","Purple","Computer","Language"];
+let currentWord = "";
+
+function speak(text) {
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.9;
+    speechSynthesis.speak(u);
+}
+
+function speakSpelling(word) {
+    let i = 0;
+    function next() {
+        if (i < word.length) {
+            speak(word[i]);
+            i++;
+            setTimeout(next, 500);
+        }
+    }
+    next();
+}
+
+function nextWord() {
+    document.getElementById("answer").value = "";
+    document.getElementById("result").innerHTML = "";
+    currentWord = words[Math.floor(Math.random() * words.length)];
+    speak(currentWord);
+}
+
+function speakWord() {
+    speak(currentWord);
+}
+
+function checkSpelling() {
+    const user = document.getElementById("answer").value.trim();
+    const res = document.getElementById("result");
+
+    if (user.toLowerCase() === currentWord.toLowerCase()) {
+        res.innerHTML = "✅ Correct!";
+        res.style.color = "green";
+    } else {
+        res.innerHTML = "❌ Incorrect<br>Correct word: " + currentWord;
+        res.style.color = "red";
+        speak(currentWord);
+        setTimeout(() => speakSpelling(currentWord), 800);
+    }
+}
+
+nextWord();
+</script>
+
+</body>
+</html>
