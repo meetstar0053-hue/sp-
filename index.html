@@ -27,6 +27,11 @@ input {
     font-size: 18px;
     margin-top: 10px;
 }
+.msg {
+    color: #444;
+    font-size: 16px;
+    margin-top: 10px;
+}
 hr {
     margin: 20px 0;
 }
@@ -38,7 +43,7 @@ hr {
 <h2>🔊 Spelling Practice</h2>
 
 <button onclick="speakWord()">🔈 Speak Word</button>
-<button onclick="spellWord()">🔤 Spelling</button>
+<button onclick="showSpelling()">🔤 Spelling</button>
 <button onclick="randomWord()">🎲 Random Word</button>
 
 <br><br>
@@ -51,6 +56,7 @@ hr {
 <button onclick="nextWord()">Next Word</button>
 
 <div class="result" id="result"></div>
+<div class="msg" id="message"></div>
 
 <hr>
 
@@ -69,33 +75,22 @@ let wrongWords = [];
 let count = 0;
 let index = 0;
 
-// ---------- SPEECH ----------
+// ---------- SPEECH (ONLY FULL WORD) ----------
 function speak(text) {
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.9;
     speechSynthesis.speak(u);
 }
 
-// ---------- SPELL LETTER BY LETTER ----------
-function speakSpelling(word) {
-    let i = 0;
-    function next() {
-        if (i < word.length) {
-            speak(word[i]);
-            i++;
-            setTimeout(next, 450);
-        }
-    }
-    next();
-}
-
-// ---------- BUTTON ACTIONS ----------
 function speakWord() {
     if (currentWord) speak(currentWord);
 }
 
-function spellWord() {
-    if (currentWord) speakSpelling(currentWord);
+// ---------- SHOW SPELLING (NO AUDIO) ----------
+function showSpelling() {
+    if (!currentWord) return;
+    document.getElementById("message").innerHTML =
+        "Spelling: <b>" + currentWord.split("").join(" - ") + "</b>";
 }
 
 // ---------- RANDOM WORD ----------
@@ -105,16 +100,15 @@ function randomWord() {
     speak(currentWord);
 }
 
-// ---------- NEXT WORD (WITH WRONG REVISION) ----------
+// ---------- NEXT WORD (REVISION WITHOUT SPEAK) ----------
 function nextWord() {
     resetUI();
     count++;
 
-    // After every 3 words, repeat wrong spelling
     if (count % 3 === 0 && wrongWords.length > 0) {
         currentWord = wrongWords.shift();
-        speak("Revision");
-        setTimeout(() => speak(currentWord), 700);
+        document.getElementById("message").innerHTML =
+            "🔁 Revision word: <b>" + currentWord + "</b>";
         return;
     }
 
@@ -136,13 +130,7 @@ function checkSpelling() {
     } else {
         res.innerHTML = "❌ Wrong<br>Correct: " + currentWord;
         res.style.color = "red";
-
-        // save wrong word
         wrongWords.push(currentWord);
-
-        // speak correct + spelling
-        speak(currentWord);
-        setTimeout(() => speakSpelling(currentWord), 700);
     }
 }
 
@@ -160,6 +148,7 @@ function addWord() {
 function resetUI() {
     document.getElementById("answer").value = "";
     document.getElementById("result").innerHTML = "";
+    document.getElementById("message").innerHTML = "";
 }
 
 // Start app
