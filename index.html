@@ -12,30 +12,34 @@ body {
     background: #f4f6f8;
     padding: 20px;
 }
+button {
+    font-size: 16px;
+    padding: 10px 15px;
+    margin: 5px;
+}
 input {
     font-size: 18px;
     padding: 10px;
     width: 80%;
 }
-button {
-    font-size: 18px;
-    padding: 10px 20px;
-    margin: 5px;
-}
 .result {
     font-size: 18px;
-    margin-top: 15px;
+    margin-top: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🔊 Spelling Practice</h1>
+<h2>🔊 Spelling Practice</h2>
 
-<button onclick="speakWord()">🔈 Speak Word</button><br><br>
+<button onclick="speakWord()">🔈 Speak Word</button>
+<button onclick="randomWord()">🎲 Random Word</button>
+<button onclick="alphabetSpell()">🔤 A–Z</button>
 
-<input id="answer" placeholder="Type spelling">
+<br><br>
+
+<input id="answer" placeholder="Type spelling here">
 
 <br><br>
 
@@ -45,53 +49,103 @@ button {
 <div class="result" id="result"></div>
 
 <script>
-const words = ["Strawberry","Harbor","Purple","Computer","Language"];
-let currentWord = "";
+const words = [
+ "Strawberry","Harbor","Purple","Computer","Language"
+];
 
+let currentWord = "";
+let wrongWords = [];
+let count = 0;
+let index = 0;
+
+// ---------- SPEECH ----------
 function speak(text) {
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.9;
     speechSynthesis.speak(u);
 }
 
+// ---------- SPELL LETTERS ----------
 function speakSpelling(word) {
     let i = 0;
     function next() {
         if (i < word.length) {
             speak(word[i]);
             i++;
+            setTimeout(next, 450);
+        }
+    }
+    next();
+}
+
+// ---------- RANDOM WORD ----------
+function randomWord() {
+    currentWord = words[Math.floor(Math.random() * words.length)];
+    resetUI();
+    speak(currentWord);
+}
+
+// ---------- NEXT WORD (WITH REVISION) ----------
+function nextWord() {
+    resetUI();
+    count++;
+
+    // After 3 words, revise wrong ones
+    if (count % 3 === 0 && wrongWords.length > 0) {
+        currentWord = wrongWords.shift();
+        speak("Revision");
+        setTimeout(() => speak(currentWord), 800);
+        return;
+    }
+
+    currentWord = words[index % words.length];
+    index++;
+    speak(currentWord);
+}
+
+// ---------- CHECK ----------
+function checkSpelling() {
+    const user = document.getElementById("answer").value.trim().toLowerCase();
+    const res = document.getElementById("result");
+
+    if (user === currentWord.toLowerCase()) {
+        res.innerHTML = "✅ Correct!";
+        res.style.color = "green";
+    } else {
+        res.innerHTML = "❌ Wrong<br>Correct: " + currentWord;
+        res.style.color = "red";
+
+        wrongWords.push(currentWord);
+
+        speak(currentWord);
+        setTimeout(() => speakSpelling(currentWord), 700);
+    }
+}
+
+// ---------- A TO Z ----------
+function alphabetSpell() {
+    let charCode = 65;
+    function next() {
+        if (charCode <= 90) {
+            speak(String.fromCharCode(charCode));
+            charCode++;
             setTimeout(next, 500);
         }
     }
     next();
 }
 
-function nextWord() {
+// ---------- UTILS ----------
+function speakWord() {
+    if (currentWord) speak(currentWord);
+}
+
+function resetUI() {
     document.getElementById("answer").value = "";
     document.getElementById("result").innerHTML = "";
-    currentWord = words[Math.floor(Math.random() * words.length)];
-    speak(currentWord);
 }
 
-function speakWord() {
-    speak(currentWord);
-}
-
-function checkSpelling() {
-    const user = document.getElementById("answer").value.trim();
-    const res = document.getElementById("result");
-
-    if (user.toLowerCase() === currentWord.toLowerCase()) {
-        res.innerHTML = "✅ Correct!";
-        res.style.color = "green";
-    } else {
-        res.innerHTML = "❌ Incorrect<br>Correct word: " + currentWord;
-        res.style.color = "red";
-        speak(currentWord);
-        setTimeout(() => speakSpelling(currentWord), 800);
-    }
-}
-
+// Start first word
 nextWord();
 </script>
 
